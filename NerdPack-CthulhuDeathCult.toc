@@ -1,0 +1,6 @@
+## Title: |r[|cff0070deNerdPack|r] Cthulhu Death Cult
+## Notes: Ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn.
+## Interface: 70000
+## Dependencies: NerdPack, NerdPack-Xeer
+
+NerdPack-CthulhuDeathCult.lua
