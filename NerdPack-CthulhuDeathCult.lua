@@ -1,5 +1,5 @@
 -- luacheck: globals NeP
-
+local CDC                     = select(2, ...)
 local GetTime                 = GetTime
 local UnitCastingInfo         = UnitCastingInfo
 local UnitAura                = UnitAura
@@ -13,6 +13,9 @@ local SetOverrideBindingClick = SetOverrideBindingClick
 local select                  = select
 local pairs                   = pairs
 local NeP                     = NeP
+
+CDC.Name                      = "Cthulhu Death Cult"
+CDC.Version                   = 0.1
 
 local MovementKeyDown, KeyboardKeyDown, CreatedKeybinds, LastCheck = {}, {}, {}
 
@@ -29,13 +32,6 @@ local DoNotInterrupt = {
 	["Cinderstorm"]   = true,
 	["Pyroblast"]     = true,
 }
-
-local CreateKeybind = function(key, callback)
-	CreatedKeybinds[key] = CreateFrame("BUTTON", "CDCKeybind"..key)
-	SetOverrideBindingClick(CreatedKeybinds[key], true, key, CreatedKeybinds[key]:GetName())
-	CreatedKeybinds[key]:SetScript("OnClick", function(_, _, down) callback(key, down) end)
-	CreatedKeybinds[key]:RegisterForClicks("AnyUp", "AnyDown")
-end
 
 local SpamCheck = function()
 	local time = GetTime()
@@ -74,52 +70,26 @@ local MovementCallback = function(button, down)
 	end
 end
 
-local KeyboardCallback = function(button, down)
-	if down then
-		KeyboardKeyDown[button] = true
-	else
-		KeyboardKeyDown[button] = nil
-	end
-end
-
-NeP.DSL:Register("mouse3", function() return IsMouseButtonDown(3) end)
-
-NeP.DSL:Register("customkeybind", function(_, key)
-	key = key:upper()
-	return KeyboardKeyDown[key] or false
-end)
-
 NeP.DSL:Register("boss_time_to_die", function(target)
 	return NeP.DSL:Get("boss")(target) and NeP.DSL:Get("deathin")(target) or 8675309
 end)
 
+NeP.DSL:Register("invehicle", function()
+	return (SecureCmdOptionParse("[overridebar][vehicleui][possessbar,@vehicle,exists]true")) == "true"
+end)
+
 local GUI = {
-	--[[{
-		type    = "dropdown",
-		text    = "Main Defense",
-		key     = "shield",
-		list    = {
-			{
-				text  = "Ironfur",
-				key   = 1,
-			},
-			{
-				text  = "Mark of Ursol",
-				key   = 2,
-			},
-		},
-		default = 1,
-		desc    = "Used ASAP"
-	}]]
 }
 
 local ExeOnLoad = function()
-	CreateKeybind("W", MovementCallback)
-	CreateKeybind("A", MovementCallback)
-	CreateKeybind("S", MovementCallback)
-	CreateKeybind("D", MovementCallback)
 
-	CreateKeybind("Q", KeyboardCallback)
+	NeP.CustomKeybind:Add(CDC.Name, "W", MovementCallback)
+	NeP.CustomKeybind:Add(CDC.Name, "A", MovementCallback)
+	NeP.CustomKeybind:Add(CDC.Name, "S", MovementCallback)
+	NeP.CustomKeybind:Add(CDC.Name, "D", MovementCallback)
+
+	NeP.CustomKeybind:Add(CDC.Name, "Q")
+	NeP.CustomKeybind:Add(CDC.Name, "1")
 
 	NeP.Interface:AddToggle({
 		key  = "xCombustion",
@@ -128,36 +98,6 @@ local ExeOnLoad = function()
 		icon = "Interface\\Icons\\Spell_fire_sealoffire",
 	})
 end
-
---[[local cancast = "{xmoving = 0 || player.buff(Ice Floes) || prev_gcd(Ice Floes) || cooldown(Ice Floes).remains = 0}"
-
-local castFireball = {
-	{"Ice Floes", "cooldown(61304).remains < 0.5 & xmoving = 1 & !prev_gcd(Ice Floes) & !player.buff(Ice Floes)"},
-	{"Fireball"}
-}
-
-local Main = {
-	{"Pyroblast", "player.buff(Hot Streak!) & !lastcast(Pyroblast) & {lastgcd(Fireball) || player.casting(Fireball) || !"..cancast.."}"},
-	{"&Fire Blast", "player.buff(Heating Up) & !lastcast(Fire Blast)"},
-	{"Scorch", "target.health<=25&equipped(132454)"},
-	{castFireball, cancast},
-	{"Ice Barrier", "!player.buff(Ice Barrier)&!player.buff(Combustion)&!player.buff(Rune of Power)"},
-	{"Scorch", "xmoving=1&!player.buff(Ice Floes)"}
-}
-
-local InCombat = {
-	{Main, "mouse3&target.range<40&target.infront"},
-}
-
-local OutOfCombat = {
-	{"&/stopcasting", "!mouse3&player.casting(Fireball)"},
-	{"Fireball", "mouse3"}
-}
-
-local Keybinds = {
-	-- Pause
-	{"%pause", "keybind(alt)"}
-}--]]
 
 local cancast = "{xmoving = 0 || player.buff(Ice Floes) || prev_gcd(Ice Floes) || cooldown(Ice Floes).remains = 0}"
 
@@ -199,29 +139,29 @@ local Talents = {
 local Combustion = {
 	{"Rune of Power", "!player.buff(Combustion)"},
 	{Talents},
-	{"Combustion", "player.buff(Rune of Power) || player.casting(Rune of Power).percent > 90"},
+	{"&Combustion", "player.buff(Rune of Power) || {player.casting(Rune of Power) & player.casting.percent > 80}"},
 	{"Blood Fury"},
 	{"Berserking"},
-	{"Pyroblast", "player.buff(Hot Streak!)"},
-	{"&Fire Blast", "player.buff(Heating Up) & !prev_off_gcd(Fire Blast) & player.buff(Combustion)"},
+	{"&Pyroblast", "player.buff(Hot Streak!) & player.buff(Combustion)"},
+	{"Phoenix's Flames", "action(Phoenix's Flames).charges>2.7 & player.buff(Combustion) & !player.buff(Hot Streak!)"},
+	{"&Fire Blast", "player.buff(Heating Up) & !player.lastcast(Fire Blast) & player.buff(Combustion)"},
 	{"Phoenix's Flames", "artifact(Phoenix's Flames).equipped"},
 	{"Scorch", "player.buff(Combustion).remains > action(Scorch).cast_time"},
-	{"Scorch", "target.health<=25 & equipped(132454)"}
 }
 
 local MainRotation = {
 	{"Pyroblast", "player.buff(Hot Streak!) & player.buff(Hot Streak!).remains < action(Fireball).execute_time"},
 	{"Phoenix's Flames", "action(Phoenix's Flames).charges > 2.7"},
 	{"Flamestrike", "talent(6,3) & target.area(10).enemies > 2 & player.buff(Hot Streak!)", "target.ground"},
-	{"Pyroblast", "player.buff(Hot Streak!) & {lastgcd(Fireball) || player.casting(Fireball) || player.casting(Pyroblast) ||"..cannotcast.."}"},
+	{"&Pyroblast", "player.buff(Hot Streak!) & {lastgcd(Fireball) || player.casting(Fireball) || player.casting(Pyroblast) ||"..cannotcast.."}"},
 	{"Pyroblast", "player.buff(Hot Streak!) & target.health <= 25 & equipped(132454)"},
-	{castPyroblast, "!player.casting(Pyroblast) & !player.buff(Hot Streak!) & player.buff(Kael'thas's Ultimate Ability) & player.buff(Kael'thas's Ultimate Ability).remains < action(Pyroblast).execute_time & "..cancast},
-	{"Phoenix's Flames", "action(Phoenix's Flames).charges > 2.7"},
+	{castPyroblast, "!player.casting(Pyroblast) & !player.buff(Hot Streak!) & player.buff(Kael'thas's Ultimate Ability) & player.buff(Kael'thas's Ultimate Ability).remains > action(Pyroblast).execute_time + gcd & "..cancast},
+	{"Phoenix's Flames", "!player.buff(Hot Streak!) & action(Phoenix's Flames).charges > 2.7"},
 	{Talents},
-	{"&Fire Blast", "!talent(7,1) & player.buff(Heating Up) & player.casting(Fireball).left < 98 & !prev_off_gcd(Fire Blast) & {!talent(3,2) || action(Fire Blast).charges > 1.4 || cooldown(Combustion).remains < 40} & {3 - action(Fire Blast).charges} * {12 * spell_haste} <= cooldown(Combustion).remains + 3 || target.boss_time_to_die < 4"},
-  {"&Fire Blast", "talent(7,1) & player.buff(Heating Up) & player.casting(Fireball).left < 98 & !prev_off_gcd(Fire Blast) & {!talent(3,2) || action(Fire Blast).charges > 1.5 || {cooldown(Combustion).remains < 40}} & {3 - action(Fire Blast).charges} * {18 * spell_haste} <= cooldown(Combustion).remains + 3 || target.boss_time_to_die < 4"},
-	{"Phoenix's Flames", "{player.buff(Combustion) || player.buff(Rune of Power) || player.buff(Incanter's Flow).stack > 3 || talent(3,1)} & {4 - action(Phoenix's Flames).charges} * 13 < cooldown(Combustion).remains + 5 || target.boss_time_to_die < 10"},
-	{"Phoenix's Flames", "{player.buff(Combustion) || player.buff(Rune of Power)} & {4 - action(Phoenix's Flames).charges} * 30 < cooldown(Combustion).remains + 5"},
+	{"&Fire Blast", "!talent(7,1) & player.buff(Heating Up) & {player.casting(Fireball) || player.casting(Pyroblast) || ".. cannotcast .."} & !prev_off_gcd(Fire Blast) & {!talent(3,2) || action(Fire Blast).charges > 1.4 || cooldown(Combustion).remains < 40} & {3 - action(Fire Blast).charges} * {12 * spell_haste} <= cooldown(Combustion).remains + 3 || target.boss_time_to_die < 4"},
+	{"&Fire Blast", "talent(7,1) & player.buff(Heating Up) & {player.casting(Fireball) || player.casting(Pyroblast) || ".. cannotcast .."} & !prev_off_gcd(Fire Blast) & {!talent(3,2) || action(Fire Blast).charges > 1.5 || {cooldown(Combustion).remains < 40}} & {3 - action(Fire Blast).charges} * {18 * spell_haste} <= cooldown(Combustion).remains + 3 || target.boss_time_to_die < 4"},
+	{"Phoenix's Flames", "!player.buff(Hot Streak!) & {player.buff(Combustion) || player.buff(Rune of Power) || player.buff(Incanter's Flow).stack > 3 || talent(3,1)} & {4 - action(Phoenix's Flames).charges} * 13 < cooldown(Combustion).remains + 5 || target.boss_time_to_die < 10"},
+	{"Phoenix's Flames", "!player.buff(Hot Streak!) & {player.buff(Combustion) || player.buff(Rune of Power)} & {4 - action(Phoenix's Flames).charges} * 30 < cooldown(Combustion).remains + 5"},
 	{"Scorch", "target.health <= 25 & equipped(132454)"},
 	{castFireball, cancast},
 	{"Ice Barrier", "!player.buff(Ice Barrier) & !player.buff(Combustion) & !player.buff(Rune of Power)"},
@@ -230,13 +170,13 @@ local MainRotation = {
 
 local xCombat = {
 	{"Rune of Power", "toggle(cooldowns) & xmoving = 0 & {cooldown(Combustion).remains > 40 || !toggle(xCombustion)} & {!player.buff(Combustion) & {cooldown(Flame On).remains < 5 || cooldown(Flame On).remains > 30} & !talent(7,1) || target.boss_time_to_die < 11 || talent(7,1) & {action(Rune of Power).charges > 1.8 || player.combat.time < 40} & {cooldown(Combustion).remains > 40 || !toggle(xCombustion)}}"},
-	{Combustion, "toggle(xCombustion) & toggle(cooldowns) & {xmoving = 0 || player.buff(Combustion)} & {cooldown(Combustion).remains <= action(Rune of Power).cast_time + gcd || player.buff(Combustion)}"},
-	--{xmoving = 0 || player.buff(Combustion)} TODO: nested || doesn't seem to work here. --/dump NeP.DSL:Get('xmoving')()
-	--{MainRotation}
+	{Combustion, "toggle(xCombustion) & toggle(cooldowns) & {xmoving = 0 || player.buff(Combustion)} & {cooldown(Combustion).remains <= action(Rune of Power).cast_time || player.buff(Combustion)}"},
+	{MainRotation}
 }
 
 local inCombat = {
 	{Keybinds},
+	{"&/click OverrideActionBarButton1", "invehicle & customkeybind(1)"},
 	{Interrupts, "target.interruptAt(50) & toggle(interrupts) & target.infront & target.range < 40"},
 	{Survival, "customkeybind(q)"},
 	{xCombat, "target.range < 40 & target.infront"}
@@ -245,9 +185,21 @@ local inCombat = {
 local outCombat = {
 	{Keybinds},
 	{Survival, "customkeybind(q)"},
+	{"&/click ElvUI_Bar1Button1\n/click OverrideActionBarButton1", "invehicle & customkeybind(1)"},
+	{"&/stopcasting", "!invehicle & !customkeybind(1) & player.casting(Fireball)"},
+	{"Fireball", "!invehicle & customkeybind(1)"}
 }
 
-NeP.CR:Add(63, "Cthulhu Death Cult", inCombat, outCombat, ExeOnLoad, GUI)
+CDC.CR = {
+	name = CDC.Name,
+	ic = inCombat,
+	ooc = outCombat,
+	load = ExeOnLoad,
+	unload = nil,
+	gui = GUI,
+}
+
+NeP.CR:Add(63, CDC.CR)
 
 
 --/dump NeP.Interface:Fetch("TOGGLE_STATES", "mastertoggle")
