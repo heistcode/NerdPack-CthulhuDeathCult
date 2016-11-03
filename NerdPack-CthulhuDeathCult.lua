@@ -180,7 +180,7 @@ local xCombat = {
 
 local inCombat = {
 	{Keybinds},
-	{"&/click OverrideActionBarButton1", "invehicle & customkeybind(1)"},
+	{"&/click ElvUI_Bar1Button1\n/click OverrideActionBarButton1", "invehicle & customkeybind(1)"},
 	{Interrupts, "target.interruptAt(50) & toggle(interrupts) & target.infront & target.range < 40"},
 	{Survival, "customkeybind(q)"},
 	{xCombat, "target.range < 40 & target.infront"}
