@@ -89,6 +89,7 @@ local ExeOnLoad = function()
 	NeP.CustomKeybind:Add(CDC.Name, "D", MovementCallback)
 
 	NeP.CustomKeybind:Add(CDC.Name, "Q")
+	NeP.CustomKeybind:Add(CDC.Name, "SHIFT-Q")
 	NeP.CustomKeybind:Add(CDC.Name, "1")
 
 	NeP.Interface:AddToggle({
@@ -128,7 +129,10 @@ local Interrupts = {
 }
 
 local Survival = {
-	{"Ice Barrier", "!player.buff(Ice Barrier) & !player.buff(Combustion) & !player.buff(Rune of Power)"},
+	{"Ice Block", "{customkeybind(shift q) || {player.combat & player.health < 15 & !player.buff(Ice Barrier) & spell.cooldown(Ice Barrier) > 0 & !player.buff(Combustion) & !player.buff(Rune of Power)}} & !player.buff(Ice Block) & !player.debuff(Hypothermia)"},
+	{"#127834", "player.health < 20 & !player.buff(Ice Barrier) & spell.cooldown(Ice Barrier) > 0"},
+	{"Ice Barrier", "{customkeybind(q) || player.health < 30} & !player.buff(Ice Barrier) & !player.buff(Combustion) & !player.buff(Rune of Power)"},
+
 }
 
 local Talents = {
@@ -182,13 +186,13 @@ local inCombat = {
 	{Keybinds},
 	{"&/click ElvUI_Bar1Button1\n/click OverrideActionBarButton1", "invehicle & customkeybind(1)"},
 	{Interrupts, "target.interruptAt(50) & toggle(interrupts) & target.infront & target.range < 40"},
-	{Survival, "customkeybind(q)"},
+	{Survival},
 	{xCombat, "target.range < 40 & target.infront"}
 }
 
 local outCombat = {
 	{Keybinds},
-	{Survival, "customkeybind(q)"},
+	{Survival},
 	{"&/click ElvUI_Bar1Button1\n/click OverrideActionBarButton1", "invehicle & customkeybind(1)"},
 	{"&/stopcasting", "!invehicle & !customkeybind(1) & player.casting(Fireball)"},
 	{"Fireball", "!invehicle & customkeybind(1)"}
