@@ -70,12 +70,14 @@ local MovementCallback = function(button, down)
 	end
 end
 
+local VehicleUICallback = function(button, down)
+	if down and (SecureCmdOptionParse("[overridebar][vehicleui][possessbar,@vehicle,exists]true")) == "true" then
+		RunMacroText("/click ElvUI_Bar1Button"..button.."\n/click OverrideActionBarButton"..button)
+	end
+end
+
 NeP.DSL:Register("boss_time_to_die", function(target)
 	return NeP.DSL:Get("boss")(target) and NeP.DSL:Get("deathin")(target) or 8675309
-end)
-
-NeP.DSL:Register("invehicle", function()
-	return (SecureCmdOptionParse("[overridebar][vehicleui][possessbar,@vehicle,exists]true")) == "true"
 end)
 
 local GUI = {
@@ -90,7 +92,7 @@ local ExeOnLoad = function()
 
 	NeP.CustomKeybind:Add(CDC.Name, "Q")
 	NeP.CustomKeybind:Add(CDC.Name, "SHIFT-Q")
-	NeP.CustomKeybind:Add(CDC.Name, "1")
+	NeP.CustomKeybind:Add(CDC.Name, "1", VehicleUICallback)
 
 	NeP.Interface:AddToggle({
 		key  = "xCombustion",
@@ -184,7 +186,6 @@ local xCombat = {
 
 local inCombat = {
 	{Keybinds},
-	{"&/click ElvUI_Bar1Button1\n/click OverrideActionBarButton1", "invehicle & customkeybind(1)"},
 	{Interrupts, "target.interruptAt(50) & toggle(interrupts) & target.infront & target.range < 40"},
 	{Survival},
 	{xCombat, "target.range < 40 & target.infront"}
@@ -193,9 +194,8 @@ local inCombat = {
 local outCombat = {
 	{Keybinds},
 	{Survival},
-	{"&/click ElvUI_Bar1Button1\n/click OverrideActionBarButton1", "invehicle & customkeybind(1)"},
-	{"&/stopcasting", "!invehicle & !customkeybind(1) & player.casting(Fireball)"},
-	{"Fireball", "!invehicle & customkeybind(1)"}
+	{"&/stopcasting", "!customkeybind(1) & player.casting(Fireball)"},
+	{"Fireball", "customkeybind(1)"}
 }
 
 CDC.CR = {
