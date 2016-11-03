@@ -99,6 +99,10 @@ local ExeOnLoad = function()
 	})
 end
 
+local ExeOnUnload = function()
+	NeP.CustomKeybind:RemoveAll(CDC.Name)
+end
+
 local cancast = "{xmoving = 0 || player.buff(Ice Floes) || prev_gcd(Ice Floes) || cooldown(Ice Floes).remains = 0}"
 
 local cannotcast = "!"..cancast
@@ -195,7 +199,7 @@ CDC.CR = {
 	ic = inCombat,
 	ooc = outCombat,
 	load = ExeOnLoad,
-	unload = nil,
+	unload = ExeOnUnload,
 	gui = GUI,
 }
 
