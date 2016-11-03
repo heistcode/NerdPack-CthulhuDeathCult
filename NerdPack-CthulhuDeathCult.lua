@@ -15,7 +15,7 @@ local pairs                   = pairs
 local NeP                     = NeP
 
 CDC.Name                      = "Cthulhu Death Cult"
-CDC.Version                   = 0.1
+CDC.Version                   = 0.2
 
 local MovementKeyDown, KeyboardKeyDown, CreatedKeybinds, LastCheck = {}, {}, {}
 
