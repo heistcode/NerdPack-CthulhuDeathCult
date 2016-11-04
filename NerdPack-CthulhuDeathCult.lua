@@ -81,6 +81,20 @@ NeP.DSL:Register("boss_time_to_die", function(target)
 end)
 
 local GUI = {
+	{
+		type    = "checkbox",
+		text    = "Use Potion",
+		key     = "potion",
+		default = false,
+		desc    = "Use potion during heroism"
+	},
+	{
+		type    = "checkbox",
+		text    = "Use Gunpowder Charge",
+		key     = "gunpowder",
+		default = false,
+		desc    = "Use gunpowdercharge during combustion"
+	},
 }
 
 local ExeOnLoad = function()
@@ -147,6 +161,8 @@ local Talents = {
 }
 
 local Combustion = {
+	{"#127843", "UI(potion) & hashero & boss1.exists"},
+	{"#132510", "UI(gunpowder) & !{UI(potion) & boss1.exists} & player.buff(Combustion) & player.buff(Rune of Power) & player.buff(Pyretic Incantation).stack = 5"},
 	{"Rune of Power", "!player.buff(Combustion)"},
 	{Talents},
 	{"&Combustion", "player.buff(Rune of Power) || {player.casting(Rune of Power) & player.casting.percent > 80}"},
@@ -170,8 +186,8 @@ local MainRotation = {
 	{Talents},
 	{"&Fire Blast", "!talent(7,1) & player.buff(Heating Up) & {player.casting(Fireball) || player.casting(Pyroblast) || ".. cannotcast .."} & !prev_off_gcd(Fire Blast) & {!talent(3,2) || action(Fire Blast).charges > 1.4 || cooldown(Combustion).remains < 40} & {3 - action(Fire Blast).charges} * {12 * spell_haste} <= cooldown(Combustion).remains + 3 || target.boss_time_to_die < 4"},
 	{"&Fire Blast", "talent(7,1) & player.buff(Heating Up) & {player.casting(Fireball) || player.casting(Pyroblast) || ".. cannotcast .."} & !prev_off_gcd(Fire Blast) & {!talent(3,2) || action(Fire Blast).charges > 1.5 || {cooldown(Combustion).remains < 40}} & {3 - action(Fire Blast).charges} * {18 * spell_haste} <= cooldown(Combustion).remains + 3 || target.boss_time_to_die < 4"},
-	{"Phoenix's Flames", "!player.buff(Hot Streak!) & {player.buff(Combustion) || player.buff(Rune of Power) || player.buff(Incanter's Flow).stack > 3 || talent(3,1)} & {4 - action(Phoenix's Flames).charges} * 13 < cooldown(Combustion).remains + 5 || target.boss_time_to_die < 10"},
-	{"Phoenix's Flames", "!player.buff(Hot Streak!) & {player.buff(Combustion) || player.buff(Rune of Power)} & {4 - action(Phoenix's Flames).charges} * 30 < cooldown(Combustion).remains + 5"},
+	{"Phoenix's Flames", "!player.buff(Hot Streak!) & {player.buff(Combustion) || {player.buff(Rune of Power) & player.buff(Pyretic Incantation).stack > 3} || player.buff(Incanter's Flow).stack > 3 || talent(3,1)} & {4 - action(Phoenix's Flames).charges} * 13 < cooldown(Combustion).remains + 5 || target.boss_time_to_die < 10"},
+	{"Phoenix's Flames", "!player.buff(Hot Streak!) & {player.buff(Combustion) || {player.buff(Rune of Power) & player.buff(Pyretic Incantation).stack > 3}} & {4 - action(Phoenix's Flames).charges} * 30 < cooldown(Combustion).remains + 5"},
 	{"Scorch", "target.health <= 25 & equipped(132454)"},
 	{castFireball, cancast},
 	{"Ice Barrier", "!player.buff(Ice Barrier) & !player.buff(Combustion) & !player.buff(Rune of Power)"},
