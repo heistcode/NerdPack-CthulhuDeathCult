@@ -161,6 +161,7 @@ local Talents = {
 }
 
 local Combustion = {
+	{"#trinket2"},
 	{"#127843", "UI(potion) & hashero & boss1.exists"},
 	{"#132510", "UI(gunpowder) & !{UI(potion) & boss1.exists} & player.buff(Combustion) & player.buff(Rune of Power) & player.buff(Pyretic Incantation).stack = 5"},
 	{"Rune of Power", "!player.buff(Combustion)"},
@@ -211,7 +212,7 @@ local outCombat = {
 	{Keybinds},
 	{Survival},
 	{"&/stopcasting", "!customkeybind(1) & player.casting(Fireball)"},
-	{"Fireball", "customkeybind(1)"}
+	{castFireball, "customkeybind(1) &".. cancast}
 }
 
 CDC.CR = {
