@@ -1,23 +1,24 @@
 -- luacheck: globals NeP
-local CDC                     = select(2, ...)
-local GetTime                 = GetTime
-local UnitCastingInfo         = UnitCastingInfo
-local UnitAura                = UnitAura
-local GetSpellCooldown        = GetSpellCooldown
-local IsUsableSpell           = IsUsableSpell
-local CastSpellByName         = CastSpellByName
-local UnitGUID                = UnitGUID
-local IsMouseButtonDown       = IsMouseButtonDown
-local CreateFrame             = CreateFrame
-local SetOverrideBindingClick = SetOverrideBindingClick
-local select                  = select
-local pairs                   = pairs
-local NeP                     = NeP
+local CDC                  = select(2, ...)
+local GetTime              = GetTime
+local UnitCastingInfo      = UnitCastingInfo
+local UnitAura             = UnitAura
+local GetSpellCooldown     = GetSpellCooldown
+local IsUsableSpell        = IsUsableSpell
+local CastSpellByName      = CastSpellByName
+local UnitGUID             = UnitGUID
+local UnitHealth           = UnitHealth
+local UnitHealthMax        = UnitHealthMax
+local SecureCmdOptionParse = SecureCmdOptionParse
+local RunMacroText         = RunMacroText
+local select               = select
+local pairs                = pairs
+local NeP                  = NeP
 
-CDC.Name                      = "Cthulhu Death Cult"
-CDC.Version                   = 0.2
+CDC.Name                   = "Cthulhu Death Cult"
+CDC.Version                = 0.3
 
-local MovementKeyDown, KeyboardKeyDown, CreatedKeybinds, LastCheck = {}, {}, {}
+local MovementKeyDown, LastCheck = {}
 
 local Move = {
 	W = { MoveForwardStart, MoveForwardStop },
@@ -80,6 +81,11 @@ NeP.DSL:Register("boss_time_to_die", function(target)
 	return NeP.DSL:Get("boss")(target) and NeP.DSL:Get("deathin")(target) or 8675309
 end)
 
+NeP.DSL:Register("relativehealth", function(target)
+	--relative to player max hp
+	return UnitHealth(target) / UnitHealthMax("player")
+end)
+
 local GUI = {
 	{
 		type    = "checkbox",
@@ -107,6 +113,7 @@ local ExeOnLoad = function()
 	NeP.CustomKeybind:Add(CDC.Name, "Q")
 	NeP.CustomKeybind:Add(CDC.Name, "SHIFT-Q")
 	NeP.CustomKeybind:Add(CDC.Name, "1", VehicleUICallback)
+	NeP.CustomKeybind:Add(CDC.Name, "2", VehicleUICallback)
 
 	NeP.Interface:AddToggle({
 		key  = "xCombustion",
@@ -157,13 +164,13 @@ local Talents = {
 	{"Meteor", "talent(7,3) & {cooldown(Combustion).remains > 30 || {cooldown(Combustion).remains > target.boss_time_to_die} || player.buff(Rune of Power)}"},
 	{"Cinderstorm", "talent(7,2) & {cooldown(Combustion).remains < action(Cinderstorm).cast_time & {player.buff(Rune of Power) || !talent(3,2)} || cooldown(Combustion).remains > 10 * spell_haste & !player.buff(Combustion)}"},
 	{"Dragon's Breath", "equipped(132863)"},
-	{"Living Bomb", "talent(6,1) & target.area(10).enemies > 1 & !player.buff(Combustion)"}
+	{"Living Bomb", "talent(6,1) & target.area(45).enemies > 1 & !player.buff(Combustion)"}
 }
 
 local Combustion = {
 	{"#trinket2"},
 	{"#127843", "UI(potion) & hashero & boss1.exists"},
-	{"#132510", "UI(gunpowder) & !{UI(potion) & boss1.exists} & player.buff(Combustion) & player.buff(Rune of Power) & player.buff(Pyretic Incantation).stack = 5"},
+	{"#132510", "UI(gunpowder) & {target.relativehealth > 5 || target.boss} & !{UI(potion) & boss1.exists} & player.buff(Combustion) & player.buff(Rune of Power) & player.buff(Pyretic Incantation).stack = 5"},
 	{"Rune of Power", "!player.buff(Combustion)"},
 	{Talents},
 	{"&Combustion", "player.buff(Rune of Power) || {player.casting(Rune of Power) & player.casting.percent > 80}"},
@@ -182,7 +189,7 @@ local MainRotation = {
 	{"Flamestrike", "talent(6,3) & target.area(10).enemies > 2 & player.buff(Hot Streak!)", "target.ground"},
 	{"&Pyroblast", "player.buff(Hot Streak!) & {lastgcd(Fireball) || player.casting(Fireball) || player.casting(Pyroblast) ||"..cannotcast.."}"},
 	{"Pyroblast", "player.buff(Hot Streak!) & target.health <= 25 & equipped(132454)"},
-	{castPyroblast, "!player.casting(Pyroblast) & !player.buff(Hot Streak!) & player.buff(Kael'thas's Ultimate Ability) & player.buff(Kael'thas's Ultimate Ability).remains > action(Pyroblast).execute_time + gcd & "..cancast},
+	{castPyroblast, "target.relativehealth > 1 & !player.casting(Pyroblast) & !player.buff(Hot Streak!) & player.buff(Kael'thas's Ultimate Ability) & player.buff(Kael'thas's Ultimate Ability).remains > action(Pyroblast).execute_time + gcd & "..cancast},
 	{"Phoenix's Flames", "!player.buff(Hot Streak!) & action(Phoenix's Flames).charges > 2.7"},
 	{Talents},
 	{"&Fire Blast", "!talent(7,1) & player.buff(Heating Up) & {player.casting(Fireball) || player.casting(Pyroblast) || ".. cannotcast .."} & !prev_off_gcd(Fire Blast) & {!talent(3,2) || action(Fire Blast).charges > 1.4 || cooldown(Combustion).remains < 40} & {3 - action(Fire Blast).charges} * {12 * spell_haste} <= cooldown(Combustion).remains + 3 || target.boss_time_to_die < 4"},
@@ -196,12 +203,13 @@ local MainRotation = {
 }
 
 local xCombat = {
-	{"Rune of Power", "toggle(cooldowns) & xmoving = 0 & {cooldown(Combustion).remains > 40 || !toggle(xCombustion)} & {!player.buff(Combustion) & {cooldown(Flame On).remains < 5 || cooldown(Flame On).remains > 30} & !talent(7,1) || target.boss_time_to_die < 11 || talent(7,1) & {action(Rune of Power).charges > 1.8 || player.combat.time < 40} & {cooldown(Combustion).remains > 40 || !toggle(xCombustion)}}"},
-	{Combustion, "toggle(xCombustion) & toggle(cooldowns) & {xmoving = 0 || player.buff(Combustion)} & {cooldown(Combustion).remains <= action(Rune of Power).cast_time || player.buff(Combustion)}"},
+	{"Rune of Power", "{target.relativehealth > 1 || target.boss} & toggle(cooldowns) & xmoving = 0 & {cooldown(Combustion).remains > 40 || !toggle(xCombustion)} & {!player.buff(Combustion) & {cooldown(Flame On).remains < 5 || cooldown(Flame On).remains > 30} & !talent(7,1) || target.boss_time_to_die < 11 || talent(7,1) & {action(Rune of Power).charges > 1.8 || player.combat.time < 40} & {cooldown(Combustion).remains > 40 || !toggle(xCombustion)}}"},
+	{Combustion, "{target.relativehealth > 1 || target.boss} & toggle(xCombustion) & toggle(cooldowns) & {xmoving = 0 || player.buff(Combustion)} & {cooldown(Combustion).remains <= action(Rune of Power).cast_time || player.buff(Combustion)}"},
 	{MainRotation}
 }
 
 local inCombat = {
+	{"/equip Felo'melorn", "!equipped(128820)"},
 	{Keybinds},
 	{Interrupts, "target.interruptAt(50) & toggle(interrupts) & target.infront & target.range < 40"},
 	{Survival},
@@ -211,8 +219,9 @@ local inCombat = {
 local outCombat = {
 	{Keybinds},
 	{Survival},
-	{"&/stopcasting", "!customkeybind(1) & player.casting(Fireball)"},
-	{castFireball, "customkeybind(1) &".. cancast}
+	{"&/stopcasting", "!customkeybind(1) & !customkeybind(2) & player.casting(Fireball)"},
+	{castFireball, "customkeybind(1) &".. cancast},
+	{inCombat, "customkeybind(2)"},
 }
 
 CDC.CR = {
