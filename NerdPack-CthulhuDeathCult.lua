@@ -164,11 +164,11 @@ local Talents = {
 	{"Meteor", "talent(7,3) & {cooldown(Combustion).remains > 30 || {cooldown(Combustion).remains > target.boss_time_to_die} || player.buff(Rune of Power)}"},
 	{"Cinderstorm", "talent(7,2) & {cooldown(Combustion).remains < action(Cinderstorm).cast_time & {player.buff(Rune of Power) || !talent(3,2)} || cooldown(Combustion).remains > 10 * spell_haste & !player.buff(Combustion)}"},
 	{"Dragon's Breath", "equipped(132863)"},
-	{"Living Bomb", "talent(6,1) & target.area(45).enemies > 1 & !player.buff(Combustion)"}
+	{"Living Bomb", "talent(6,1) & {player.area(40).enemies > 1 || customkeybind(2)} & !player.buff(Combustion)"}
 }
 
 local Combustion = {
-	{"#trinket2"},
+	{"#139326", "equipped(139326)"},
 	{"#127843", "UI(potion) & hashero & boss1.exists"},
 	{"#132510", "UI(gunpowder) & {target.relativehealth > 5 || target.boss} & !{UI(potion) & boss1.exists} & player.buff(Combustion) & player.buff(Rune of Power) & player.buff(Pyretic Incantation).stack = 5"},
 	{"Rune of Power", "!player.buff(Combustion)"},
@@ -203,8 +203,8 @@ local MainRotation = {
 }
 
 local xCombat = {
-	{"Rune of Power", "{target.relativehealth > 1 || target.boss} & toggle(cooldowns) & xmoving = 0 & {cooldown(Combustion).remains > 40 || !toggle(xCombustion)} & {!player.buff(Combustion) & {cooldown(Flame On).remains < 5 || cooldown(Flame On).remains > 30} & !talent(7,1) || target.boss_time_to_die < 11 || talent(7,1) & {action(Rune of Power).charges > 1.8 || player.combat.time < 40} & {cooldown(Combustion).remains > 40 || !toggle(xCombustion)}}"},
-	{Combustion, "{target.relativehealth > 1 || target.boss} & toggle(xCombustion) & toggle(cooldowns) & {xmoving = 0 || player.buff(Combustion)} & {cooldown(Combustion).remains <= action(Rune of Power).cast_time || player.buff(Combustion)}"},
+	{"Rune of Power", "{target.relativehealth > 1 || target.boss} & toggle(cooldowns) & xmoving = 0 & cooldown(Combustion).remains > 40 & {!player.buff(Combustion) & {cooldown(Flame On).remains < 5 || cooldown(Flame On).remains > 30} & !talent(7,1) || target.boss_time_to_die < 11 || talent(7,1) & {action(Rune of Power).charges > 1.8 || player.combat.time < 40} & cooldown(Combustion).remains > 40}"},
+	{Combustion, "player.buff(Combustion) || {{target.relativehealth > 1 || target.boss} & toggle(xCombustion) & toggle(cooldowns) & {xmoving = 0 || player.buff(Combustion)} & {cooldown(Combustion).remains <= action(Rune of Power).cast_time || player.buff(Combustion)}}"},
 	{MainRotation}
 }
 
