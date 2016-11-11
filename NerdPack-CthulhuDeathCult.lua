@@ -17,7 +17,7 @@ local pairs                = pairs
 local NeP                  = NeP
 
 CDC.Name                   = "Cthulhu Death Cult"
-CDC.Version                = 0.31
+CDC.Version                = 0.32
 
 do
 	local LastCheck
