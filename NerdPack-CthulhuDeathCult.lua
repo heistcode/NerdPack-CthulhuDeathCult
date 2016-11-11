@@ -136,7 +136,7 @@ local cancast =
 local CastFireball = {
 	{
 		"Ice Floes",
-		"cooldown(61304).remains < 0.5 & moving & !lastgcd(Ice Floes) & !player.buff(Ice Floes)"
+		"cooldown(61304).remains < 0.1 & moving & !lastgcd(Ice Floes) & !player.buff(Ice Floes)"
 	},
 	{"Fireball"}
 }
@@ -144,7 +144,7 @@ local CastFireball = {
 local CastPyroblast = {
 	{
 		"Ice Floes",
-		"cooldown(61304).remains < 0.5 & moving & !lastgcd(Ice Floes) & !player.buff(Ice Floes)"
+		"cooldown(61304).remains < 0.1 & moving & !lastgcd(Ice Floes) & !player.buff(Ice Floes)"
 	},
 	{"Pyroblast"}
 }
