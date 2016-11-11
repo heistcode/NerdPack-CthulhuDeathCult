@@ -164,7 +164,12 @@ local Interrupts = {
 
 local Survival = {
 	{
-		"Ice Block",
+		"!Ice Barrier",
+		"player.health < 20 & !player.buff(Ice Barrier) & !player.buff(Combustion) &" ..
+				"!player.buff(Rune of Power)"
+	},
+	{
+		"!Ice Block",
 		"{customkeybind(shift q) || {player.combat & player.health < 15 & !player.buff(Ice Barrier) &" ..
 				"spell.cooldown(Ice Barrier) > 0 & !player.buff(Combustion) & !player.buff(Rune of Power)}}" ..
 				"& !player.buff(Ice Block) & !player.debuff(Hypothermia)"
