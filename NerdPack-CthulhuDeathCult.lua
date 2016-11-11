@@ -137,12 +137,14 @@ function CDC.ExeOnUnload()
 end
 
 local cancast =
-	"{!moving || movingfor > 0.1 || player.buff(Ice Floes) || lastgcd(Ice Floes) || spell(Ice Floes).cooldown = 0}"
+	"{!moving || movingfor > 0.1 || player.buff(Ice Floes) || lastgcd(Ice Floes) ||" ..
+			"spell(Ice Floes).cooldown = 0}"
 
 local CastFireball = {
 	{
 		"Ice Floes",
-		"spell(61304).cooldown < 0.1 & moving & movingfor > 0.1 & !lastgcd(Ice Floes) & !player.buff(Ice Floes)"
+		"spell(61304).cooldown < 0.1 & moving & movingfor > 0.1 & !lastgcd(Ice Floes) &" ..
+				"!player.buff(Ice Floes)"
 	},
 	{"Fireball"}
 }
@@ -150,7 +152,8 @@ local CastFireball = {
 local CastPyroblast = {
 	{
 		"Ice Floes",
-		"spell(61304).cooldown < 0.1 & moving & movingfor > 0.1 & !lastgcd(Ice Floes) & !player.buff(Ice Floes)"
+		"spell(61304).cooldown < 0.1 & moving & movingfor > 0.1 & !lastgcd(Ice Floes) &" ..
+				"!player.buff(Ice Floes)"
 	},
 	{"Pyroblast"}
 }
@@ -225,7 +228,8 @@ local CombustionRotation = {
 	{
 		"#132510",
 		"UI(gunpowder) & {target.relativehealth > 5 || target.boss} & !{UI(potion) & boss1.exists} &" ..
-		"player.buff(Combustion) & player.buff(Rune of Power) & player.buff(Pyretic Incantation).count = 5"
+				"player.buff(Combustion) & player.buff(Rune of Power) &" ..
+				"player.buff(Pyretic Incantation).count = 5"
 	},
 	{"Rune of Power", "!player.buff(Combustion)"},
 	{
@@ -239,7 +243,10 @@ local CombustionRotation = {
 		"Phoenix's Flames",
 		"spell(Phoenix's Flames).charges>2.7 & player.buff(Combustion) & !player.buff(Hot Streak!)"
 	},
-	{"&Fire Blast", "player.buff(Heating Up) & !player.lastcast(Fire Blast) & player.buff(Combustion)"},
+	{
+		"&Fire Blast",
+		"player.buff(Heating Up) & !player.lastcast(Fire Blast) & player.buff(Combustion)"
+	},
 	{"Phoenix's Flames"},
 	{"Scorch", "player.buff(Combustion).duration > spell(Scorch).casttime"},
 }
