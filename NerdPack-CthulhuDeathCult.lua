@@ -137,23 +137,20 @@ function CDC.ExeOnUnload()
 end
 
 local cancast =
-	"{!moving || movingfor > 0.1 || player.buff(Ice Floes) || lastgcd(Ice Floes) ||" ..
-			"spell(Ice Floes).cooldown = 0}"
+	"{!moving || player.buff(Ice Floes) || lastgcd(Ice Floes) || spell(Ice Floes).cooldown = 0}"
 
 local CastFireball = {
 	{
-		"Ice Floes",
-		"spell(61304).cooldown < 0.1 & moving & movingfor > 0.1 & !lastgcd(Ice Floes) &" ..
-				"!player.buff(Ice Floes)"
+		"&Ice Floes",
+		"spell(61304).cooldown < 0.1 & moving & !lastgcd(Ice Floes) & !player.buff(Ice Floes)"
 	},
 	{"Fireball"}
 }
 
 local CastPyroblast = {
 	{
-		"Ice Floes",
-		"spell(61304).cooldown < 0.1 & moving & movingfor > 0.1 & !lastgcd(Ice Floes) &" ..
-				"!player.buff(Ice Floes)"
+		"&Ice Floes",
+		"spell(61304).cooldown < 0.1 & moving & !lastgcd(Ice Floes) & !player.buff(Ice Floes)"
 	},
 	{"Pyroblast"}
 }
@@ -315,6 +312,7 @@ local MainRotation = {
 }
 
 local Combat = {
+	{"!Slow Fall", "player.debuff(Sapped Soul)", "player"},
 	{
 		"Rune of Power",
 		"{target.relativehealth > 1 || target.boss} & toggle(cooldowns) & !moving &" ..
