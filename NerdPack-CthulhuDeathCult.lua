@@ -1,5 +1,5 @@
 -- luacheck: globals NeP
-local CDC                  = select(2, ...)
+local CDC                  = (select(2, ...))
 local GetTime              = GetTime
 local UnitCastingInfo      = UnitCastingInfo
 local UnitAura             = UnitAura
@@ -17,7 +17,9 @@ local pairs                = pairs
 local NeP                  = NeP
 
 CDC.Name                   = "Cthulhu Death Cult"
-CDC.Version                = 0.32
+CDC.Version                = 0.33
+
+_G["BINDING_HEADER_CDC"]  = "Cthulhu Death Cult"
 
 do
 	local LastCheck
@@ -91,8 +93,7 @@ NeP.DSL:Register("relativehealth", function(target)
 end)
 
 NeP.DSL:Register('shaste', function()
-	local shaste = NeP.DSL:Get('haste')('player')
-	return floor((100 / ( 100 + shaste )) * 10^3 ) / 10^3
+	return floor((100 / (100 + NeP.DSL:Get('haste')('player'))) * 10 ^ 3) / 10 ^ 3
 end)
 
 CDC.GUI = {
@@ -193,23 +194,23 @@ local Talents = {
 	{
 		"Flame On",
 		"talent(4,2) & {spell(Fire Blast).charges < 0.2 & {spell(Combustion).cooldown > 65 ||" ..
-		"target.bossttd < spell(Combustion).cooldown}}"
+				"target.bossttd < spell(Combustion).cooldown}}"
 	},
 	{
 		"Blast Wave",
 		"talent(4,1) & {!player.buff(Combustion) || {player.buff(Combustion) &" ..
-		"spell(Fire Blast).charges < 1 & spell(Phoenix's Flames).charges < 1}}"
+				"spell(Fire Blast).charges < 1 & spell(Phoenix's Flames).charges < 1}}"
 	},
 	{
 		"Meteor",
 		"talent(7,3) & {spell(Combustion).cooldown > 30 || {spell(Combustion).cooldown >" ..
-		"target.bossttd} || player.buff(Rune of Power)}"
+				"target.bossttd} || player.buff(Rune of Power)}"
 	},
 	{
 		"Cinderstorm",
 		"talent(7,2) & {spell(Combustion).cooldown < spell(Cinderstorm).casttime &" ..
-		"{player.buff(Rune of Power) || !talent(3,2)} || spell(Combustion).cooldown > 10 * shaste" ..
-		"& !player.buff(Combustion)}"
+				"{player.buff(Rune of Power) || !talent(3,2)} || spell(Combustion).cooldown > 10 * shaste" ..
+				"& !player.buff(Combustion)}"
 	},
 	{"Dragon's Breath", "equipped(132863)"},
 	{

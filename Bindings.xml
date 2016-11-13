@@ -1,0 +1,5 @@
+<Bindings>
+    <Binding name="Combustion" description="Toggle ON/OFF" header="CDC" category="NerdPack">
+        NeP.Interface:toggleToggle('combustion')
+    </Binding>
+</Bindings>
