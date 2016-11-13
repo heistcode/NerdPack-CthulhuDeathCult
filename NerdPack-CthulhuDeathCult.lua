@@ -19,7 +19,7 @@ local NeP                  = NeP
 CDC.Name                   = "Cthulhu Death Cult"
 CDC.Version                = 0.33
 
-_G["BINDING_HEADER_CDC"]  = "Cthulhu Death Cult"
+_G["BINDING_HEADER_CDC"]  = CDC.Name
 
 do
 	local LastCheck
