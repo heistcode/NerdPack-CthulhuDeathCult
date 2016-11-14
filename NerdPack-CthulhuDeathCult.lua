@@ -38,10 +38,10 @@ end
 do
 	local MovementKeyDown = {}
 	local Move = {
-		W = { MoveForwardStart, MoveForwardStop },
-		S = { MoveBackwardStart, MoveBackwardStop },
-		A = { StrafeLeftStart, StrafeLeftStop },
-		D = { StrafeRightStart, StrafeRightStop }
+		W = {MoveForwardStart, MoveForwardStop},
+		S = {MoveBackwardStart, MoveBackwardStop},
+		A = {StrafeLeftStart, StrafeLeftStop},
+		D = {StrafeRightStart, StrafeRightStop}
 	}
 	function CDC.IceFloesListener(_, event, _, sourceGUID, ...)
 		if event == "SPELL_AURA_APPLIED" and sourceGUID == UnitGUID("player") and
@@ -221,7 +221,7 @@ local Talents = {
 	{"Dragon's Breath", "equipped(132863)"},
 	{
 		"Living Bomb",
-		"talent(6,1) & {player.area(40).enemies > 1 & toggle(aoe)} & !player.buff(Combustion)"
+		"talent(6,1) & toggle(aoe) & !player.buff(Combustion) &  player.area(40).enemies > 1"
 	}
 }
 
@@ -334,7 +334,7 @@ local Combat = {
 				"toggle(combustion) & toggle(cooldowns) & {!moving || player.buff(Combustion)} &" ..
 				"{spell(Combustion).cooldown <= spell(Rune of Power).casttime || player.buff(Combustion)}}"
 	},
-	{MainRotation}
+	{MainRotation}aaaaaaaaaaaaaaaa
 }
 
 local IC = {
