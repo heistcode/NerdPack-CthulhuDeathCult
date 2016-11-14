@@ -9,6 +9,7 @@ local CastSpellByName      = CastSpellByName
 local UnitGUID             = UnitGUID
 local UnitHealth           = UnitHealth
 local UnitHealthMax        = UnitHealthMax
+local IsSpellInRange       = IsSpellInRange
 local SecureCmdOptionParse = SecureCmdOptionParse
 local RunMacroText         = RunMacroText
 local select               = select
@@ -92,8 +93,12 @@ NeP.DSL:Register("relativehealth", function(target)
 	return UnitHealth(target) / UnitHealthMax("player")
 end)
 
-NeP.DSL:Register('shaste', function()
-	return floor((100 / (100 + NeP.DSL:Get('haste')('player'))) * 10 ^ 3) / 10 ^ 3
+NeP.DSL:Register("shaste", function()
+	return floor((100 / (100 + NeP.DSL:Get("haste")("player"))) * 10 ^ 3) / 10 ^ 3
+end)
+
+NeP.DSL:Register("canfireball", function(target)
+	return IsSpellInRange("Fireball", target) == 1
 end)
 
 CDC.GUI = {
@@ -138,7 +143,8 @@ function CDC.ExeOnUnload()
 end
 
 local cancast =
-	"{!moving || player.buff(Ice Floes) || lastgcd(Ice Floes) || spell(Ice Floes).cooldown = 0}"
+	"{{!moving || player.buff(Ice Floes) || lastgcd(Ice Floes) || spell(Ice Floes).cooldown = 0}" ..
+			"& target.canfireball & target.infront}"
 
 local CastFireball = {
 	{
@@ -198,30 +204,30 @@ local Talents = {
 	},
 	{
 		"Blast Wave",
-		"talent(4,1) & {!player.buff(Combustion) || {player.buff(Combustion) &" ..
+		"talent(4,1) & toggle(aoe) & {!player.buff(Combustion) || {player.buff(Combustion) &" ..
 				"spell(Fire Blast).charges < 1 & spell(Phoenix's Flames).charges < 1}}"
 	},
 	{
 		"Meteor",
-		"talent(7,3) & {spell(Combustion).cooldown > 30 || {spell(Combustion).cooldown >" ..
-				"target.bossttd} || player.buff(Rune of Power)}"
+		"talent(7,3) & toggle(aoe) & {spell(Combustion).cooldown > 30 || {spell(Combustion).cooldown" ..
+				"> target.bossttd} || player.buff(Rune of Power)}"
 	},
 	{
 		"Cinderstorm",
-		"talent(7,2) & {spell(Combustion).cooldown < spell(Cinderstorm).casttime &" ..
+		"talent(7,2) & toggle(aoe) & {spell(Combustion).cooldown < spell(Cinderstorm).casttime &" ..
 				"{player.buff(Rune of Power) || !talent(3,2)} || spell(Combustion).cooldown > 10 * shaste" ..
 				"& !player.buff(Combustion)}"
 	},
 	{"Dragon's Breath", "equipped(132863)"},
 	{
 		"Living Bomb",
-		"talent(6,1) & {player.area(40).enemies > 1 || customkeybind(1)} & !player.buff(Combustion)"
+		"talent(6,1) & {player.area(40).enemies > 1 & toggle(aoe)} & !player.buff(Combustion)"
 	}
 }
 
 local CombustionRotation = {
 	{Talents},
-	{"#139326", "equipped(139326)"},
+	{"#139326", "equipped(139326) & !player.buff(Combustion)"},
 	{"#127843", "UI(potion) & hashero & boss1.exists"},
 	{
 		"#132510",
@@ -334,18 +340,18 @@ local Combat = {
 local IC = {
 	{"/equip Felo'melorn", "!equipped(128820)"},
 	{Keybinds},
-	{Interrupts, "target.interruptAt(50) & toggle(interrupts) & target.infront & target.range < 40"},
+	{Interrupts, "target.interruptAt(50) & toggle(interrupts) & target.canfireball & target.infront"},
 	{Survival},
-	{Combat, "target.range < 40 & target.infront"}
+	{Combat, "target.canfireball & target.infront"}
 }
 
 local OOC = {
 	{Keybinds},
 	{Survival},
-	{
-		"&/stopcasting",
-		"!customkeybind(1) & !customkeybind(2) & player.casting(Fireball) & player.casting.percent < 80"
-	},
+	--{
+	--	"&/stopcasting",
+	--	"!customkeybind(1) & !customkeybind(2) & player.casting(Fireball) & player.casting.percent < 80"
+	--},
 	{CastFireball, "customkeybind(1) &".. cancast},
 	{IC, "customkeybind(2)"},
 }
