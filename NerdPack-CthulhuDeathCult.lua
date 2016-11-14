@@ -348,10 +348,10 @@ local IC = {
 local OOC = {
 	{Keybinds},
 	{Survival},
-	--{
-	--	"&/stopcasting",
-	--	"!customkeybind(1) & !customkeybind(2) & player.casting(Fireball) & player.casting.percent < 80"
-	--},
+	{
+		"&/stopcasting",
+		"!customkeybind(1) & !customkeybind(2) & player.casting(Fireball) & player.casting.percent < 80"
+	},
 	{CastFireball, "customkeybind(1) &".. cancast},
 	{IC, "customkeybind(2)"},
 }
