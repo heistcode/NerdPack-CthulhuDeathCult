@@ -18,7 +18,7 @@ local pairs                = pairs
 local NeP                  = NeP
 
 CDC.Name                   = "Cthulhu Death Cult"
-CDC.Version                = 0.33
+CDC.Version                = 0.34
 
 _G["BINDING_HEADER_CDC"]   = CDC.Name
 
@@ -127,6 +127,8 @@ function CDC.ExeOnLoad()
 
 	NeP.CustomKeybind:Add(CDC.Name, "Q")
 	NeP.CustomKeybind:Add(CDC.Name, "SHIFT-Q")
+	NeP.CustomKeybind:Add(CDC.Name, "V")
+
 	NeP.CustomKeybind:Add(CDC.Name, "1", CDC.VehicleUICallback)
 	NeP.CustomKeybind:Add(CDC.Name, "2", CDC.VehicleUICallback)
 
@@ -163,7 +165,12 @@ local CastPyroblast = {
 }
 
 local Keybinds = {
-	{"%pause", "keybind(alt)"}
+	{"%pause", "keybind(alt)"},
+	{
+		"/clearfocus [@focus,dead][@focus,noexists][mod:shift][@focus,noharm]\n" ..
+				"/focus [@focus,noexists]\n/cast [@focus]Polymorph(Black Cat)",
+		"customkeybind(v)"
+	},
 }
 
 
@@ -334,7 +341,7 @@ local Combat = {
 				"toggle(combustion) & toggle(cooldowns) & {!moving || player.buff(Combustion)} &" ..
 				"{spell(Combustion).cooldown <= spell(Rune of Power).casttime || player.buff(Combustion)}}"
 	},
-	{MainRotation}aaaaaaaaaaaaaaaa
+	{MainRotation}
 }
 
 local IC = {
