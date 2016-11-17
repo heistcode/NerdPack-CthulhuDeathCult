@@ -2,7 +2,7 @@
 local CDC                  = (select(2, ...))
 local GetTime              = GetTime
 local UnitCastingInfo      = UnitCastingInfo
-local UnitAura             = UnitAura
+local UnitBuff             = UnitBuff
 local GetSpellCooldown     = GetSpellCooldown
 local IsUsableSpell        = IsUsableSpell
 local CastSpellByName      = CastSpellByName
@@ -73,7 +73,7 @@ do
 		if down then
 			MovementKeyDown[button] = true
 			if MasterToggle() and PreCombat() and	DoNotInterrupt[UnitCastingInfo("player")] and
-					not UnitAura("player", "Ice Floes") and GetSpellCooldown("Ice Floes") == 0 and
+					not UnitBuff("player", "Ice Floes") and GetSpellCooldown("Ice Floes") == 0 and
 					IsUsableSpell("Ice Floes") then
 				NeP.Listener:Add("CDC_IceFloesListener", "COMBAT_LOG_EVENT_UNFILTERED", CDC.IceFloesListener)
 				if CDC.SpamCheck() then CastSpellByName("Ice Floes") end
@@ -110,6 +110,16 @@ end)
 
 NeP.DSL:Register("canfireball", function(target)
 	return IsSpellInRange("Fireball", target) == 1
+end)
+
+NeP.DSL:Register("spellsteal", function(target)
+	if IsSpellInRange("Spellsteal", target) == 1 then
+		for i=1,40 do
+			if select(9, UnitBuff(target, i)) then
+				return true
+			end
+		end
+	end
 end)
 
 CDC.GUI = {
@@ -160,6 +170,7 @@ function CDC.ExeOnLoad()
 	NeP.CustomKeybind:Add(CDC.Name, "Q")
 	NeP.CustomKeybind:Add(CDC.Name, "SHIFT-Q")
 	NeP.CustomKeybind:Add(CDC.Name, "V")
+	NeP.CustomKeybind:Add(CDC.Name, "F")
 
 	NeP.CustomKeybind:Add(CDC.Name, "1", CDC.VehicleUICallback)
 	NeP.CustomKeybind:Add(CDC.Name, "2", CDC.VehicleUICallback)
@@ -205,6 +216,7 @@ local Keybinds = {
 				"/focus [@focus,noexists]\n/cast [@focus]Polymorph(Black Cat)",
 		"customkeybind(v)"
 	},
+	{"Spellsteal", "customkeybind(F) & target.spellsteal"},
 }
 
 
