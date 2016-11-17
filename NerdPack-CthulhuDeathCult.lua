@@ -10,6 +10,7 @@ local UnitGUID             = UnitGUID
 local UnitHealth           = UnitHealth
 local UnitHealthMax        = UnitHealthMax
 local IsSpellInRange       = IsSpellInRange
+local InCombatLockdown     = InCombatLockdown
 local SecureCmdOptionParse = SecureCmdOptionParse
 local RunMacroText         = RunMacroText
 local select               = select
@@ -18,7 +19,7 @@ local pairs                = pairs
 local NeP                  = NeP
 
 CDC.Name                   = "Cthulhu Death Cult"
-CDC.Version                = 0.34
+CDC.Version                = 0.40
 
 _G["BINDING_HEADER_CDC"]   = CDC.Name
 
@@ -43,6 +44,7 @@ do
 		A = {StrafeLeftStart, StrafeLeftStop},
 		D = {StrafeRightStart, StrafeRightStop}
 	}
+
 	function CDC.IceFloesListener(_, event, _, sourceGUID, ...)
 		if event == "SPELL_AURA_APPLIED" and sourceGUID == UnitGUID("player") and
 				select(8, ...) == 108839 then
@@ -51,6 +53,14 @@ do
 			end
 			NeP.Listener:Remove("CDC_IceFloesListener", "COMBAT_LOG_EVENT_UNFILTERED")
 		end
+	end
+
+	local function MasterToggle()
+		return NeP.Interface:Fetch("TOGGLE_STATES", "mastertoggle")
+	end
+
+	local function PreCombat()
+		return InCombatLockdown() or NeP.DSL:Get("customkeybind")("player","1") or NeP.DSL:Get("customkeybind")("player","2")
 	end
 
 	function CDC.MovementCallback(button, down)
@@ -62,8 +72,9 @@ do
 		}
 		if down then
 			MovementKeyDown[button] = true
-			if DoNotInterrupt[UnitCastingInfo("player")] and not UnitAura("player", "Ice Floes") and
-					GetSpellCooldown("Ice Floes") == 0 and IsUsableSpell("Ice Floes") then
+			if MasterToggle() and PreCombat() and	DoNotInterrupt[UnitCastingInfo("player")] and
+					not UnitAura("player", "Ice Floes") and GetSpellCooldown("Ice Floes") == 0 and
+					IsUsableSpell("Ice Floes") then
 				NeP.Listener:Add("CDC_IceFloesListener", "COMBAT_LOG_EVENT_UNFILTERED", CDC.IceFloesListener)
 				if CDC.SpamCheck() then CastSpellByName("Ice Floes") end
 				return
@@ -81,7 +92,7 @@ end
 
 function CDC.VehicleUICallback(button, down)
 	if down and (SecureCmdOptionParse("[overridebar][vehicleui][possessbar,@vehicle,exists]")) then
-		RunMacroText("/click ElvUI_Bar1Button"..button.."\n/click OverrideActionBarButton"..button)
+		RunMacroText("/click ElvUI_Bar1Button" .. button .. "\n/click OverrideActionBarButton" .. button)
 	end
 end
 
@@ -116,6 +127,27 @@ CDC.GUI = {
 		default = false,
 		desc    = "Use gunpowdercharge during combustion"
 	},
+	{
+		type    = "checkbox",
+		text    = "Auto Ice Block",
+		key     = "autoiceblock",
+		default = true,
+		desc    = "Use Ice Block automatically at 15% HP"
+	},
+	{
+		type    = "checkbox",
+		text    = "Auto Ice Barrier",
+		key     = "autoicebarrier",
+		default = true,
+		desc    = "Use Ice Barrier automatically at 30% HP"
+	},
+	{
+		type    = "checkbox",
+		text    = "Auto Health Potion",
+		key     = "autohppotion",
+		default = true,
+		desc    = "Use health potion automatically at 20% HP"
+	},
 }
 
 function CDC.ExeOnLoad()
@@ -147,6 +179,8 @@ end
 local cancast =
 	"{{!moving || player.buff(Ice Floes) || lastgcd(Ice Floes) || spell(Ice Floes).cooldown = 0}" ..
 			"& target.canfireball & target.infront}"
+
+local castflamestrike = "customkeybind(1)"
 
 local CastFireball = {
 	{
@@ -185,20 +219,24 @@ local Interrupts = {
 local Survival = {
 	{
 		"!Ice Barrier",
-		"player.health < 20 & !player.buff(Ice Barrier) & !player.buff(Combustion) &" ..
-				"!player.buff(Rune of Power)"
+		"UI(autoicebarrier) & player.health < 20 & !player.buff(Ice Barrier) &" ..
+				"!player.buff(Combustion) & !player.buff(Rune of Power)"
 	},
 	{
 		"!Ice Block",
-		"{customkeybind(shift q) || {player.combat & player.health < 15 & !player.buff(Ice Barrier) &" ..
-				"spell(Ice Barrier).cooldown > 0 & !player.buff(Combustion) & !player.buff(Rune of Power)}}" ..
-				"& !player.buff(Ice Block) & !player.debuff(Hypothermia)"
+		"{customkeybind(shift q) || {UI(autoiceblock) & player.combat & player.health < 15 &" ..
+		 		"!player.buff(Ice Barrier) & spell(Ice Barrier).cooldown > 0 & !player.buff(Combustion) &" ..
+				"!player.buff(Rune of Power)}} & !player.buff(Ice Block) & !player.debuff(Hypothermia)"
 	},
-	{"#127834", "player.health < 20 & !player.buff(Ice Barrier) & spell(Ice Barrier).cooldown > 0"},
+	{
+		"#127834",
+		"UI(autohppotion) & player.combat & player.health < 20 & !player.buff(Ice Barrier) &" ..
+				"spell(Ice Barrier).cooldown > 0"
+	},
 	{
 		"Ice Barrier",
-		"{customkeybind(q) || player.health < 30} & !player.buff(Ice Barrier) &" ..
-				"!player.buff(Combustion) & !player.buff(Rune of Power)"
+		"{customkeybind(q) || {UI(autoicebarrier) & player.health < 30}} & !player.buff(Ice Barrier)" ..
+				"& !player.buff(Combustion) & !player.buff(Rune of Power)"
 	},
 
 }
@@ -206,7 +244,7 @@ local Survival = {
 local Talents = {
 	{
 		"Flame On",
-		"talent(4,2) & {spell(Fire Blast).charges < 0.2 & {spell(Combustion).cooldown > 65 ||" ..
+		"talent(4,2) & {spell(Fire Blast).charges < 0.5 & {spell(Combustion).cooldown > 60 ||" ..
 				"target.bossttd < spell(Combustion).cooldown}}"
 	},
 	{
@@ -243,10 +281,7 @@ local CombustionRotation = {
 				"player.buff(Pyretic Incantation).count = 5"
 	},
 	{"Rune of Power", "!player.buff(Combustion)"},
-	{
-		"&Combustion",
-		"player.buff(Rune of Power) || {player.casting(Rune of Power) & player.casting.percent > 80}"
-	},
+	{"&Combustion", "player.casting(Rune of Power) & player.casting.percent > 80"},
 	{"Blood Fury"},
 	{"Berserking"},
 	{"&Pyroblast", "player.buff(Hot Streak!) & player.buff(Combustion)"},
@@ -264,27 +299,26 @@ local CombustionRotation = {
 
 local MainRotation = {
 	{
-		"Pyroblast",
+		"&Pyroblast",
 		"player.buff(Hot Streak!) & player.buff(Hot Streak!).duration < spell(Fireball).casttime"
 	},
 	{"Phoenix's Flames", "spell(Phoenix's Flames).charges > 2.7"},
-	{
-		"Flamestrike",
-		"talent(6,3) & target.area(10).enemies > 2 & player.buff(Hot Streak!)",
-		"target.ground"
-	},
+	{"Flamestrike", castflamestrike .. "& player.buff(Hot Streak!)", "cursor.ground"},
 	{
 		"&Pyroblast",
-		"player.buff(Hot Streak!) & {lastgcd(Fireball) || player.casting(Fireball) ||" ..
-				"player.casting(Pyroblast) || !" .. cancast .. "}"
+		"!" .. castflamestrike .. "& player.buff(Hot Streak!) & {lastgcd(Fireball) ||" ..
+				"player.casting(Fireball) || player.casting(Pyroblast) || !" .. cancast .. "}"
 	},
 	{Talents},
-	{"Pyroblast", "player.buff(Hot Streak!) & target.health <= 25 & equipped(132454)"},
+	{
+		"Pyroblast",
+		"!" .. castflamestrike .. "& player.buff(Hot Streak!) & target.health <= 25 &equipped(132454)"
+	},
 	{
 		CastPyroblast,
 		"target.relativehealth > 1 & !player.casting(Pyroblast) & !player.buff(Hot Streak!) &" ..
 				"player.buff(Kael'thas's Ultimate Ability).duration > spell(Pyroblast).casttime + gcd" ..
-				"&" .. cancast
+				"& !lastgcd(Pyroblast)" .. cancast
 	},
 	{"Phoenix's Flames", "!player.buff(Hot Streak!) & spell(Phoenix's Flames).charges > 2.7"},
 	{
@@ -302,6 +336,11 @@ local MainRotation = {
 				"{!talent(3,2) || spell(Fire Blast).charges > 1.5 || {spell(Combustion).cooldown < 40}}" ..
 				"& {3 - spell(Fire Blast).charges} * {18 * shaste} <= spell(Combustion).cooldown +" ..
 				"3 || target.bossttd < 4"
+	},
+	{
+		"&Fire Blast",
+		"spell(Combustion).cooldown > 60 & spell(Combustion).cooldown < 65 &" ..
+				"spell(Flame On).cooldown = 0"
 	},
 	{
 		"Phoenix's Flames",
@@ -330,16 +369,16 @@ local Combat = {
 	{
 		"Rune of Power",
 		"{target.relativehealth > 1 || target.boss} & toggle(cooldowns) & !moving &" ..
-				"{spell(Combustion).cooldown > 40 || !toggle(combustion)} & {!player.buff(Combustion) &" ..
-				"{spell(Flame On).cooldown < 5 || spell(Flame On).cooldown > 30} & !talent(7,1) ||" ..
-				"target.bossttd < 11 || talent(7,1) & {spell(Rune of Power).charges > 1.8 ||" ..
-				"player.combat.time < 40} & {spell(Combustion).cooldown > 40 || !toggle(combustion)}}"
+				"!player.buff(Combustion) & {spell(Combustion).cooldown > 90 || {toggle(combustion) &" ..
+				"spell(Combustion).cooldown > 17 & spell(Rune of Power).charges > 1.75} ||" ..
+				"{!toggle(combustion) & spell(Rune of Power).charges > 1.9}}"
 	},
 	{
 		CombustionRotation,
 		"player.buff(Combustion) || {{target.relativehealth > 1 || target.boss} &" ..
-				"toggle(combustion) & toggle(cooldowns) & {!moving || player.buff(Combustion)} &" ..
-				"{spell(Combustion).cooldown <= spell(Rune of Power).casttime || player.buff(Combustion)}}"
+				"{player.casting(Rune of Power) || {!player.buff(Rune of Power) &" ..
+				"spell(Rune of Power).cooldown = 0}} & toggle(combustion) & toggle(cooldowns) & !moving &" ..
+				"spell(Combustion).cooldown <= spell(Rune of Power).casttime}"
 	},
 	{MainRotation}
 }
@@ -355,10 +394,6 @@ local IC = {
 local OOC = {
 	{Keybinds},
 	{Survival},
-	{
-		"&/stopcasting",
-		"!customkeybind(1) & !customkeybind(2) & player.casting(Fireball) & player.casting.percent < 80"
-	},
 	{CastFireball, "customkeybind(1) &".. cancast},
 	{IC, "customkeybind(2)"},
 }
