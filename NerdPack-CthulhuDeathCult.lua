@@ -114,7 +114,7 @@ end)
 
 NeP.DSL:Register("spellsteal", function(target)
 	if IsSpellInRange("Spellsteal", target) == 1 then
-		for i=1, 40 do
+		for i = 1, 40 do
 			if select(9, UnitBuff(target, i)) then
 				return true
 			end
