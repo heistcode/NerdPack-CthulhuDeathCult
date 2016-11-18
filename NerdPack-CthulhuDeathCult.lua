@@ -299,7 +299,7 @@ local CombustionRotation = {
 	{"&Pyroblast", "player.buff(Hot Streak!) & player.buff(Combustion)"},
 	{
 		"Phoenix's Flames",
-		"spell(Phoenix's Flames).charges>2.7 & player.buff(Combustion) & !player.buff(Hot Streak!)"
+		"spell(Phoenix's Flames).charges > 2.7 & player.buff(Combustion) & !player.buff(Hot Streak!)"
 	},
 	{
 		"&Fire Blast",
@@ -310,27 +310,27 @@ local CombustionRotation = {
 }
 
 local MainRotation = {
-	{
-		"&Pyroblast",
-		"player.buff(Hot Streak!) & player.buff(Hot Streak!).duration < spell(Fireball).casttime"
-	},
-	{"Phoenix's Flames", "spell(Phoenix's Flames).charges > 2.7"},
 	{"Flamestrike", castflamestrike .. "& player.buff(Hot Streak!)", "cursor.ground"},
 	{
 		"&Pyroblast",
+		"!" .. castflamestrike .. "& player.buff(Hot Streak!) & player.buff(Hot Streak!).duration <" ..
+				"spell(Fireball).casttime"
+	},
+	{
+		"&Pyroblast",
 		"!" .. castflamestrike .. "& player.buff(Hot Streak!) & {lastgcd(Fireball) ||" ..
-				"player.casting(Fireball) || player.casting(Pyroblast) || !" .. cancast .. "}"
+				"player.casting(Fireball) || player.casting(Pyroblast) || moving}"
+	},
+	{
+		"&Pyroblast",
+		"!" .. castflamestrike .. "& player.buff(Hot Streak!) & target.health <= 25 & equipped(132454)"
 	},
 	{Talents},
-	{
-		"Pyroblast",
-		"!" .. castflamestrike .. "& player.buff(Hot Streak!) & target.health <= 25 &equipped(132454)"
-	},
 	{
 		CastPyroblast,
 		"target.relativehealth > 1 & !player.casting(Pyroblast) & !player.buff(Hot Streak!) &" ..
 				"player.buff(Kael'thas's Ultimate Ability).duration > spell(Pyroblast).casttime + gcd" ..
-				"& !lastgcd(Pyroblast)" .. cancast
+				"& !lastgcd(Pyroblast) &" .. cancast
 	},
 	{"Phoenix's Flames", "!player.buff(Hot Streak!) & spell(Phoenix's Flames).charges > 2.7"},
 	{
