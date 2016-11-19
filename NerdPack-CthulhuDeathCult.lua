@@ -232,23 +232,27 @@ local Survival = {
 	{
 		"!Ice Barrier",
 		"UI(autoicebarrier) & player.health < 20 & !player.buff(Ice Barrier) &" ..
-				"!player.buff(Combustion) & !player.buff(Rune of Power)"
+				"!player.buff(Combustion) & !player.buff(Rune of Power)",
+		"player"
 	},
 	{
 		"!Ice Block",
 		"{customkeybind(shift q) || {UI(autoiceblock) & player.combat & player.health < 15 &" ..
 		 		"!player.buff(Ice Barrier) & spell(Ice Barrier).cooldown > 0 & !player.buff(Combustion) &" ..
-				"!player.buff(Rune of Power)}} & !player.buff(Ice Block) & !player.debuff(Hypothermia)"
+				"!player.buff(Rune of Power)}} & !player.buff(Ice Block) & !player.debuff(Hypothermia)",
+		"player"
 	},
 	{
 		"#127834",
 		"UI(autohppotion) & player.combat & player.health < 20 & !player.buff(Ice Barrier) &" ..
-				"spell(Ice Barrier).cooldown > 0"
+				"spell(Ice Barrier).cooldown > 0",
+		"player"
 	},
 	{
 		"Ice Barrier",
 		"{customkeybind(q) || {UI(autoicebarrier) & player.health < 30}} & !player.buff(Ice Barrier)" ..
-				"& !player.buff(Combustion) & !player.buff(Rune of Power)"
+				"& !player.buff(Combustion) & !player.buff(Rune of Power)",
+		"player"
 	},
 
 }
