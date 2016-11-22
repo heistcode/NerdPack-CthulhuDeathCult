@@ -381,7 +381,6 @@ local MainRotation = {
 }
 
 local Combat = {
-	{"!Slow Fall", "player.debuff(Sapped Soul)", "player"},
 	{
 		"Rune of Power",
 		"{target.relativehealth > 1 || target.boss} & toggle(cooldowns) & !moving &" ..
@@ -401,6 +400,7 @@ local Combat = {
 
 local IC = {
 	{"/equip Felo'melorn", "!equipped(128820)"},
+	{"&Ice Floes", "player.debuff(Sapped Soul)"},
 	{Keybinds},
 	{Interrupts, "target.interruptAt(50) & toggle(interrupts) & target.canfireball & target.infront"},
 	{Survival},
