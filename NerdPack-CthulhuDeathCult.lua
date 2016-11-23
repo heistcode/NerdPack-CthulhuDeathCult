@@ -392,8 +392,9 @@ local Combat = {
 		CombustionRotation,
 		"player.buff(Combustion) || {{target.relativehealth > 1 || target.boss} &" ..
 				"{player.casting(Rune of Power) || {!player.buff(Rune of Power) &" ..
-				"spell(Rune of Power).cooldown = 0}} & toggle(combustion) & toggle(cooldowns) & !moving &" ..
-				"spell(Combustion).cooldown <= spell(Rune of Power).casttime}"
+				"spell(Rune of Power).cooldown = 0}} & toggle(combustion) & toggle(cooldowns) &" ..
+				"{player.casting(Rune of Power) || !moving} & spell(Combustion).cooldown <=" ..
+				"spell(Rune of Power).casttime}"
 	},
 	{MainRotation}
 }
