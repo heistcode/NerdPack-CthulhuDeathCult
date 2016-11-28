@@ -282,7 +282,7 @@ local Talents = {
 	{"Dragon's Breath", "equipped(132863)"},
 	{
 		"Living Bomb",
-		"talent(6,1) & toggle(aoe) & !player.buff(Combustion) &  player.area(40).enemies > 1"
+		"talent(6,1) & toggle(aoe) & !player.buff(Combustion) & player.area(40).enemies > 1"
 	}
 }
 
@@ -332,7 +332,8 @@ local MainRotation = {
 	{Talents},
 	{
 		CastPyroblast,
-		"target.relativehealth > 1 & !player.casting(Pyroblast) & !player.buff(Hot Streak!) &" ..
+		"{boss1.exists & target.relativehealth > 5 || target.relativehealth > 1} &" ..
+				"!player.casting(Pyroblast) & !player.buff(Hot Streak!) &" ..
 				"player.buff(Kael'thas's Ultimate Ability).duration > spell(Pyroblast).casttime + gcd" ..
 				"& !lastgcd(Pyroblast) &" .. cancast
 	},
@@ -383,18 +384,18 @@ local MainRotation = {
 local Combat = {
 	{
 		"Rune of Power",
-		"{target.relativehealth > 1 || target.boss} & toggle(cooldowns) & !moving &" ..
-				"!player.buff(Combustion) & {spell(Combustion).cooldown > 90 || {toggle(combustion) &" ..
-				"spell(Combustion).cooldown > 17 & spell(Rune of Power).charges > 1.75} ||" ..
-				"{!toggle(combustion) & spell(Rune of Power).charges > 1.9}}"
+		"{{boss1.exists & target.relativehealth > 5 || target.relativehealth > 1} || target.boss} &" ..
+				"toggle(cooldowns) & !moving & !player.buff(Combustion) & {spell(Combustion).cooldown > 90" ..
+				"|| {toggle(combustion) & spell(Combustion).cooldown > 17 & spell(Rune of Power).charges" ..
+				"> 1.75} || {!toggle(combustion) & spell(Rune of Power).charges > 1.9}}"
 	},
 	{
 		CombustionRotation,
-		"player.buff(Combustion) || {{target.relativehealth > 1 || target.boss} &" ..
-				"{player.casting(Rune of Power) || {!player.buff(Rune of Power) &" ..
-				"spell(Rune of Power).cooldown = 0}} & toggle(combustion) & toggle(cooldowns) &" ..
-				"{player.casting(Rune of Power) || !moving} & spell(Combustion).cooldown <=" ..
-				"spell(Rune of Power).casttime}"
+		"player.buff(Combustion) || {{{boss1.exists & target.relativehealth > 5 ||" ..
+				"target.relativehealth > 1} || target.boss} & {player.casting(Rune of Power) ||" ..
+				"{!player.buff(Rune of Power) & spell(Rune of Power).cooldown = 0}} & toggle(combustion) &" ..
+				"toggle(cooldowns) & {player.casting(Rune of Power) || !moving} &" ..
+				"spell(Combustion).cooldown <= spell(Rune of Power).casttime}"
 	},
 	{MainRotation}
 }
