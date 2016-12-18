@@ -122,6 +122,10 @@ NeP.DSL:Register("spellsteal", function(target)
 	end
 end)
 
+NeP.DSL:Register("mounted", function()
+	return (SecureCmdOptionParse("[mounted]")) and true
+end)
+
 CDC.GUI = {
 	{
 		type    = "checkbox",
@@ -174,6 +178,8 @@ function CDC.ExeOnLoad()
 
 	NeP.CustomKeybind:Add(CDC.Name, "1", CDC.VehicleUICallback)
 	NeP.CustomKeybind:Add(CDC.Name, "2", CDC.VehicleUICallback)
+	NeP.CustomKeybind:Add(CDC.Name, "3", CDC.VehicleUICallback)
+	NeP.CustomKeybind:Add(CDC.Name, "4", CDC.VehicleUICallback)
 
 	NeP.Interface:AddToggle({
 		key  = "combustion",
@@ -217,6 +223,7 @@ local Keybinds = {
 		"customkeybind(v)"
 	},
 	{"Spellsteal", "customkeybind(f) & target.spellsteal"},
+	{"%pause", "mounted & !customkeybind(2)"},
 }
 
 
@@ -282,7 +289,8 @@ local Talents = {
 	{"Dragon's Breath", "equipped(132863)"},
 	{
 		"Living Bomb",
-		"talent(6,1) & toggle(aoe) & !player.buff(Combustion) & player.area(40).enemies > 1"
+		"customkeybind(2)"
+		--"talent(6,1) & toggle(aoe) & !player.buff(Combustion) & player.area(40).enemies > 1"
 	}
 }
 
@@ -300,7 +308,8 @@ local CombustionRotation = {
 	{"&Combustion", "player.casting(Rune of Power) & player.casting.percent > 80"},
 	{"Blood Fury"},
 	{"Berserking"},
-	{"&Pyroblast", "player.buff(Hot Streak!) & player.buff(Combustion)"},
+	{"Flamestrike", castflamestrike .. "& player.buff(Hot Streak!)", "cursor.ground"},
+	{"&Pyroblast", "!" .. castflamestrike .. "& player.buff(Hot Streak!) & player.buff(Combustion)"},
 	{
 		"Phoenix's Flames",
 		"spell(Phoenix's Flames).charges > 2.7 & player.buff(Combustion) & !player.buff(Hot Streak!)"
@@ -332,7 +341,8 @@ local MainRotation = {
 	{Talents},
 	{
 		CastPyroblast,
-		"{boss1.exists & target.relativehealth > 5 || target.relativehealth > 1} &" ..
+		"!customkeybind(1) & !customkeybind(2) &" ..
+				"target.relativehealth > 10 &" ..
 				"!player.casting(Pyroblast) & !player.buff(Hot Streak!) &" ..
 				"player.buff(Kael'thas's Ultimate Ability).duration > spell(Pyroblast).casttime + gcd" ..
 				"& !lastgcd(Pyroblast) &" .. cancast
@@ -392,10 +402,11 @@ local Combat = {
 	{
 		CombustionRotation,
 		"player.buff(Combustion) || {{{boss1.exists & target.relativehealth > 5 ||" ..
-				"target.relativehealth > 1} || target.boss} & {player.casting(Rune of Power) ||" ..
-				"{!player.buff(Rune of Power) & spell(Rune of Power).cooldown = 0}} & toggle(combustion) &" ..
-				"toggle(cooldowns) & {player.casting(Rune of Power) || !moving} &" ..
-				"spell(Combustion).cooldown <= spell(Rune of Power).casttime}"
+				"target.relativehealth > 1} || target.boss || customkeybind(3)} &" ..
+				"{player.casting(Rune of Power) || {!player.buff(Rune of Power) &" ..
+				"spell(Rune of Power).cooldown = 0}} & toggle(combustion) & toggle(cooldowns) &" ..
+				"{player.casting(Rune of Power) || !moving} & spell(Combustion).cooldown <=" ..
+				"spell(Rune of Power).casttime}"
 	},
 	{MainRotation}
 }
@@ -413,7 +424,7 @@ local OOC = {
 	{Keybinds},
 	{Survival},
 	{CastFireball, "customkeybind(1) &".. cancast},
-	{IC, "customkeybind(2)"},
+	{IC, "customkeybind(4)"},
 }
 
 CDC.CR = {
