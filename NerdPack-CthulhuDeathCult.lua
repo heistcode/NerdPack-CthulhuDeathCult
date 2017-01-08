@@ -60,7 +60,7 @@ do
 	end
 
 	local function PreCombat()
-		return InCombatLockdown() or NeP.DSL:Get("customkeybind")("player","1") or NeP.DSL:Get("customkeybind")("player","2")
+		return InCombatLockdown() or NeP.DSL:Get("customkeybind")("player","1") or NeP.DSL:Get("customkeybind")("player","4")
 	end
 
 	function CDC.MovementCallback(button, down)
@@ -132,7 +132,7 @@ CDC.GUI = {
 		text    = "Use Potion",
 		key     = "potion",
 		default = false,
-		desc    = "Use potion during heroism"
+		desc    = "Use potion during heroisam"
 	},
 	{
 		type    = "checkbox",
@@ -223,7 +223,7 @@ local Keybinds = {
 		"customkeybind(v)"
 	},
 	{"Spellsteal", "customkeybind(f) & target.spellsteal"},
-	{"%pause", "mounted & !customkeybind(2)"},
+	{"%pause", "mounted & !customkeybind(4)"},
 }
 
 
@@ -308,7 +308,8 @@ local CombustionRotation = {
 	{"&Combustion", "player.casting(Rune of Power) & player.casting.percent > 80"},
 	{"Blood Fury"},
 	{"Berserking"},
-	{"Flamestrike", castflamestrike .. "& player.buff(Hot Streak!)", "cursor.ground"},
+	--{"Flamestrike", castflamestrike .. "& player.buff(Hot Streak!)", "cursor.ground"},
+	{"/cast [@cursor] Flamestrike", castflamestrike .. "& player.buff(Hot Streak!)"},
 	{"&Pyroblast", "!" .. castflamestrike .. "& player.buff(Hot Streak!) & player.buff(Combustion)"},
 	{
 		"Phoenix's Flames",
@@ -323,7 +324,8 @@ local CombustionRotation = {
 }
 
 local MainRotation = {
-	{"Flamestrike", castflamestrike .. "& player.buff(Hot Streak!)", "cursor.ground"},
+	--{"Flamestrike", castflamestrike .. "& player.buff(Hot Streak!)", "cursor.ground"},
+	{"/cast [@cursor] Flamestrike", castflamestrike .. "& player.buff(Hot Streak!)"},
 	{
 		"&Pyroblast",
 		"!" .. castflamestrike .. "& player.buff(Hot Streak!) & player.buff(Hot Streak!).duration <" ..
@@ -351,18 +353,18 @@ local MainRotation = {
 	{
 		"&Fire Blast",
 		"!talent(7,1) & player.buff(Heating Up) & {player.casting(Fireball) ||" ..
-				"player.casting(Pyroblast) || !".. cancast .."} & !lastcast(Fire Blast) &" ..
-				"{!talent(3,2) || spell(Fire Blast).charges > 1.4 || spell(Combustion).cooldown < 40} &" ..
-				"{3 - spell(Fire Blast).charges} * {12 * shaste} <= spell(Combustion).cooldown + 3" ..
-				"|| target.bossttd < 4"
+				"player.casting(Pyroblast) || !".. cancast .."} & !lastcast(Fire Blast) & {!talent(3,2) ||" ..
+				"spell(Fire Blast).charges > 1.4 || spell(Combustion).cooldown < 40} & {{3 -" ..
+				"spell(Fire Blast).charges} * {12 * shaste} <= spell(Combustion).cooldown + 3 ||" ..
+				"target.bossttd < 4 || !toggle(combustion) || !toggle(cooldowns)}"
 	},
 	{
 		"&Fire Blast",
 		"talent(7,1) & player.buff(Heating Up) & {player.casting(Fireball) ||" ..
-				"player.casting(Pyroblast) || !" ..	cancast .. "} & !lastcast(Fire Blast) &" ..
-				"{!talent(3,2) || spell(Fire Blast).charges > 1.5 || {spell(Combustion).cooldown < 40}}" ..
-				"& {3 - spell(Fire Blast).charges} * {18 * shaste} <= spell(Combustion).cooldown +" ..
-				"3 || target.bossttd < 4"
+				"player.casting(Pyroblast) || !" ..	cancast .. "} & !lastcast(Fire Blast) & {!talent(3,2) ||" ..
+				"spell(Fire Blast).charges > 1.5 || spell(Combustion).cooldown < 40} & {{3 -" ..
+				"spell(Fire Blast).charges} * {18 * shaste} <= spell(Combustion).cooldown + 3 ||" ..
+				"target.bossttd < 4 || !toggle(combustion) || !toggle(cooldowns)}"
 	},
 	{
 		"&Fire Blast",
@@ -371,16 +373,14 @@ local MainRotation = {
 	},
 	{
 		"Phoenix's Flames",
-		"!player.buff(Hot Streak!) & {player.buff(Combustion) || {player.buff(Rune of Power) &" ..
-				"player.buff(Pyretic Incantation).count > 3} || player.buff(Incanter's Flow).count > 3 ||" ..
-				"talent(3,1)} & {4 - spell(Phoenix's Flames).charges} * 13 < spell(Combustion).cooldown" ..
-				"+ 5 || target.bossttd < 10"
+		"!player.buff(Hot Streak!) & {player.buff(Combustion) || player.buff(Rune of Power)} &" ..
+				"{4 - spell(Phoenix's Flames).charges} * 13 < spell(Combustion).cooldown + 5 ||" ..
+				"target.bossttd < 10"
 	},
 	{
 		"Phoenix's Flames",
-		"!player.buff(Hot Streak!) & {player.buff(Combustion) || {player.buff(Rune of Power) &" ..
-				"player.buff(Pyretic Incantation).count > 3}} & {4 - spell(Phoenix's Flames).charges} * 30" ..
-				"< spell(Combustion).cooldown + 5"
+		"!player.buff(Hot Streak!) & {player.buff(Combustion) || player.buff(Rune of Power)} &" ..
+				"{4 - spell(Phoenix's Flames).charges} * 30 < spell(Combustion).cooldown + 5"
 	},
 	{"Scorch", "target.health <= 25 & equipped(132454)"},
 	{CastFireball, cancast},
@@ -424,7 +424,7 @@ local OOC = {
 	{Keybinds},
 	{Survival},
 	{CastFireball, "customkeybind(1) &".. cancast},
-	{IC, "customkeybind(4)"},
+	{IC, "customkeybind(2) || customkeybind(4)"},
 }
 
 CDC.CR = {
