@@ -215,6 +215,14 @@ local CastPyroblast = {
 	{"Pyroblast"}
 }
 
+local CastRuneofPower = {
+	{
+		"&Ice Floes",
+		"spell(61304).cooldown < 0.1 & moving & !lastgcd(Ice Floes) & !player.buff(Ice Floes)"
+	},
+	{"Rune of Power"}
+}
+
 local Keybinds = {
 	{"%pause", "keybind(alt)"},
 	{
@@ -304,6 +312,17 @@ local CombustionRotation = {
 				"player.buff(Combustion) & player.buff(Rune of Power) &" ..
 				"player.buff(Pyretic Incantation).count = 5"
 	},
+	{
+		CastFireball,
+		"equipped(139326) & !player.buff(Combustion) & player.buff(Maddening Whispers).count > 7 &" ..
+		 		cancast
+	},
+	{
+		"Scorch",
+		"equipped(139326) & !player.buff(Combustion) & player.buff(Maddening Whispers).count > 7 &" ..
+				"moving & !player.buff(Ice Floes)"
+	},
+	{CastRuneofPower, "equipped(139326) & player.buff(Maddening Whispers)" .. cancast},
 	{"Rune of Power", "!player.buff(Combustion)"},
 	{"&Combustion", "player.casting(Rune of Power) & player.casting.percent > 80"},
 	{"Blood Fury"},
@@ -349,22 +368,27 @@ local MainRotation = {
 				"player.buff(Kael'thas's Ultimate Ability).duration > spell(Pyroblast).casttime + gcd" ..
 				"& !lastgcd(Pyroblast) &" .. cancast
 	},
-	{"Phoenix's Flames", "!player.buff(Hot Streak!) & spell(Phoenix's Flames).charges > 2.7"},
+	{
+		"Phoenix's Flames",
+		"!player.buff(Hot Streak!) & spell(Phoenix's Flames).charges > 2.7 & spell(Combustion).cooldown > 0"
+	},
 	{
 		"&Fire Blast",
 		"!talent(7,1) & player.buff(Heating Up) & {player.casting(Fireball) ||" ..
 				"player.casting(Pyroblast) || !".. cancast .."} & !lastcast(Fire Blast) & {!talent(3,2) ||" ..
-				"spell(Fire Blast).charges > 1.4 || spell(Combustion).cooldown < 40} & {{3 -" ..
-				"spell(Fire Blast).charges} * {12 * shaste} <= spell(Combustion).cooldown + 3 ||" ..
-				"target.bossttd < 4 || !toggle(combustion) || !toggle(cooldowns)}"
+				"spell(Fire Blast).charges > 1.4 || {toggle(combustion) & toggle(cooldowns) &" ..
+				"spell(Combustion).cooldown < 40}} & {{3 - spell(Fire Blast).charges} * {12 * shaste} <=" ..
+				"spell(Combustion).cooldown + 3 || target.bossttd < 4 || !toggle(combustion) ||" ..
+				"!toggle(cooldowns)}"
 	},
 	{
 		"&Fire Blast",
 		"talent(7,1) & player.buff(Heating Up) & {player.casting(Fireball) ||" ..
 				"player.casting(Pyroblast) || !" ..	cancast .. "} & !lastcast(Fire Blast) & {!talent(3,2) ||" ..
-				"spell(Fire Blast).charges > 1.5 || spell(Combustion).cooldown < 40} & {{3 -" ..
-				"spell(Fire Blast).charges} * {18 * shaste} <= spell(Combustion).cooldown + 3 ||" ..
-				"target.bossttd < 4 || !toggle(combustion) || !toggle(cooldowns)}"
+				"spell(Fire Blast).charges > 1.5 || {toggle(combustion) & toggle(cooldowns) &"..
+				"spell(Combustion).cooldown < 40}} & {{3 - spell(Fire Blast).charges} * {18 * shaste} <=" ..
+				"spell(Combustion).cooldown + 3 || target.bossttd < 4 || !toggle(combustion) ||" ..
+				"!toggle(cooldowns)}"
 	},
 	{
 		"&Fire Blast",
@@ -400,13 +424,20 @@ local Combat = {
 				"> 1.75} || {!toggle(combustion) & spell(Rune of Power).charges > 1.9}}"
 	},
 	{
+		"#139326",
+		"equipped(139326) & !player.buff(Combustion) & {{{boss1.exists & target.relativehealth > 5 ||" ..
+				"target.relativehealth > 1} || target.boss || customkeybind(3)} &" ..
+				"{!player.buff(Rune of Power) & spell(Rune of Power).cooldown = 0} & toggle(combustion) &" ..
+				"toggle(cooldowns) & !moving & spell(Combustion).cooldown <= 7}"
+	},
+	{
 		CombustionRotation,
 		"player.buff(Combustion) || {{{boss1.exists & target.relativehealth > 5 ||" ..
 				"target.relativehealth > 1} || target.boss || customkeybind(3)} &" ..
 				"{player.casting(Rune of Power) || {!player.buff(Rune of Power) &" ..
 				"spell(Rune of Power).cooldown = 0}} & toggle(combustion) & toggle(cooldowns) &" ..
-				"{player.casting(Rune of Power) || !moving} & spell(Combustion).cooldown <=" ..
-				"spell(Rune of Power).casttime}"
+				"{player.casting(Rune of Power) || !moving || player.buff(Maddening Whispers)} &" ..
+				"spell(Combustion).cooldown <= spell(Rune of Power).casttime}"
 	},
 	{MainRotation}
 }
@@ -423,6 +454,11 @@ local IC = {
 local OOC = {
 	{Keybinds},
 	{Survival},
+	{
+		"#139326",
+		"customkeybind(1) & equipped(139326) & spell(Combustion).cooldown <= 7 & toggle(combustion) &" ..
+		"toggle(cooldowns)"
+	},
 	{CastFireball, "customkeybind(1) &".. cancast},
 	{IC, "customkeybind(2) || customkeybind(4)"},
 }
